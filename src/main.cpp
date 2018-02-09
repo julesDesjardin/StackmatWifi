@@ -24,6 +24,46 @@ byte colPins[COLS] = {23,22,21,19}; //connect to the column pinouts of the keypa
 
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
+char getKeyBlocking()
+{
+  while(1)
+  {
+    char key = keypad.getKey();
+    if(key)
+      return key;
+  }
+}
+int getNumberBlocking()
+{
+  int ret = 0;
+
+  char key = 0;
+  while(key != '#')
+  {
+    key = getKeyBlocking();
+    if(key >= '0' && key <= '9') // if key is a number
+    {
+      ret*=10;
+      ret+=key-'0';
+    }
+    else if(key == '*') // correction
+      ret/=10;
+    Serial.printf("Key : %c\n",key);
+    Serial.println(ret);
+  }
+  return ret;
+}
+
+int getTime()
+{
+  int ret;
+  ret += (nextChar()-'0')*6000;
+  ret += (nextChar()-'0')*1000;
+  ret += (nextChar()-'0')*100;
+  ret += (nextChar()-'0')*10;
+  ret += (nextChar()-'0');
+  return ret;
+}
 void setup() {
 
   Serial.begin(115200);
@@ -33,26 +73,36 @@ void setup() {
 }
 
 void loop() {
+  int timeStack = 0;
+  Serial.println("Waiting for judge number");
+  int judge = getNumberBlocking();
 
-  if(Serial2.available()) {
-    int ch = Serial2.read();
-    if(ch == 0x0D)
+  Serial.println("Waiting for competitor number");
+  int comp = getNumberBlocking();
+
+  Serial.println("Ready ! Please solve");
+
+  while(!stopped)
+  {
+    if(Serial2.available())
     {
-      char next = nextChar();
-      if(next == 'S' && !stopped)
+      int ch = Serial2.read();
+      if(ch == 0x0D)
       {
-        stopped = true;
-        Serial.printf("%c:%c%c.%c%c%c\n",nextChar(),nextChar(),nextChar(),nextChar(),nextChar(),nextChar());
-      }
-      else if(next == 'I')
-      {
-        stopped = false;
+        char next = nextChar();
+        if(next == 'S' && !stopped)
+        {
+          stopped = true;
+          timeStack = getTime();
+        }
+        else if(next == 'I')
+        {
+          stopped = false;
+        }
       }
     }
   }
-  char key = keypad.getKey();
 
-if (key){
-  Serial.println(key);
-}
+  Serial.printf("Done. Judge : %d, Comp : %d, Time : %d\n",judge,comp,timeStack);
+
 }
