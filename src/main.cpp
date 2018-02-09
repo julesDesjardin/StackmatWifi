@@ -38,12 +38,13 @@ void loop() {
     int ch = Serial2.read();
     if(ch == 0x0D)
     {
-      if(nextChar() == 'S' && !stopped)
+      char next = nextChar();
+      if(next == 'S' && !stopped)
       {
         stopped = true;
         Serial.printf("%c:%c%c.%c%c%c\n",nextChar(),nextChar(),nextChar(),nextChar(),nextChar(),nextChar());
       }
-      else if(nextChar() == 'I')
+      else if(next == 'I')
       {
         stopped = false;
       }
