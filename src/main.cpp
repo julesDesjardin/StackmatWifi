@@ -1,5 +1,7 @@
 #include <Arduino.h>
 #include <Keypad.h>
+#include "KeypadUtils.h"
+#include "Person.h"
 
 HardwareSerial Serial2(2);
 
@@ -24,44 +26,21 @@ byte colPins[COLS] = {23,22,21,19}; //connect to the column pinouts of the keypa
 
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
-char getKeyBlocking()
-{
-  while(1)
-  {
-    char key = keypad.getKey();
-    if(key)
-      return key;
-  }
-}
-int getNumberBlocking()
-{
-  int ret = 0;
 
-  char key = 0;
-  while(key != '#')
-  {
-    key = getKeyBlocking();
-    if(key >= '0' && key <= '9') // if key is a number
-    {
-      ret*=10;
-      ret+=key-'0';
-    }
-    else if(key == '*') // correction
-      ret/=10;
-    Serial.printf("Key : %c\n",key);
-    Serial.println(ret);
-  }
-  return ret;
-}
 
 int getTime()
 {
   int ret;
   ret += (nextChar()-'0')*6000;
+  Serial.println(ret);
   ret += (nextChar()-'0')*1000;
+  Serial.println(ret);
   ret += (nextChar()-'0')*100;
+  Serial.println(ret);
   ret += (nextChar()-'0')*10;
+  Serial.println(ret);
   ret += (nextChar()-'0');
+  Serial.println(ret);
   return ret;
 }
 void setup() {
@@ -75,15 +54,18 @@ void setup() {
 void loop() {
   int timeStack = 0;
   Serial.println("Waiting for judge number");
-  int judge = getNumberBlocking();
+  Person judge(getNumberBlocking(keypad));
 
   Serial.println("Waiting for competitor number");
-  int comp = getNumberBlocking();
+  Person comp(getNumberBlocking(keypad));
 
   Serial.println("Ready ! Please solve");
 
+  stopped = false;
+  Serial2.flush();
   while(!stopped)
   {
+    Serial.println("Running");
     if(Serial2.available())
     {
       int ch = Serial2.read();
@@ -92,17 +74,14 @@ void loop() {
         char next = nextChar();
         if(next == 'S' && !stopped)
         {
+          Serial.println("Stopped");
           stopped = true;
           timeStack = getTime();
-        }
-        else if(next == 'I')
-        {
-          stopped = false;
         }
       }
     }
   }
 
-  Serial.printf("Done. Judge : %d, Comp : %d, Time : %d\n",judge,comp,timeStack);
+  Serial.printf("Done. Judge : %d, Comp : %d, Time : %d\n",judge.getId(),comp.getId(),timeStack);
 
 }
