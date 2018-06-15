@@ -32,15 +32,10 @@ int getTime()
 {
   int ret = 0;
   ret += (nextChar()-'0')*6000;
-  Serial.println(ret);
   ret += (nextChar()-'0')*1000;
-  Serial.println(ret);
   ret += (nextChar()-'0')*100;
-  Serial.println(ret);
   ret += (nextChar()-'0')*10;
-  Serial.println(ret);
   ret += (nextChar()-'0');
-  Serial.println(ret);
   return ret;
 }
 void setup() {
@@ -77,11 +72,31 @@ void loop() {
           Serial.println("Stopped");
           stopped = true;
           timeStack = getTime();
+          Serial.println(timeStack);
         }
       }
     }
   }
 
   Serial.printf("Done. Judge : %d, Comp : %d, Time : %d\n",judge.getId(),comp.getId(),timeStack);
-
+  Serial.println("Waiting for reset...");
+  bool reset = false;
+  while(!reset)
+  {
+    //Serial.println("Running");
+    if(Serial2.available())
+    {
+      int ch = Serial2.read();
+      if(ch == 0x0D)
+      {
+        char next = nextChar();
+        if(next == 'I' && !reset)
+        {
+          Serial.println("Reset");
+          reset = true;
+        }
+      }
+    }
+  }
+  Serial.println("OK !");
 }
