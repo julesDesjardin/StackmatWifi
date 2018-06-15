@@ -2,6 +2,7 @@
 #include <Keypad.h>
 #include "KeypadUtils.h"
 #include "Person.h"
+#include <M5Stack.h>
 
 HardwareSerial Serial2(2);
 
@@ -44,6 +45,21 @@ void setup() {
 
   // Serial2.begin(unsigned long baud, uint32_t config, int8_t rxPin, int8_t txPin, bool invert)
   Serial2.begin(1200, SERIAL_8N1, 21, 25, true);
+
+    M5.begin();
+  delay(500);
+
+  // Lcd display
+  M5.Lcd.fillScreen(WHITE);
+  delay(500);
+  M5.Lcd.fillScreen(RED);
+  delay(500);
+  M5.Lcd.fillScreen(GREEN);
+  delay(500);
+  M5.Lcd.fillScreen(BLUE);
+  delay(500);
+  M5.Lcd.fillScreen(BLACK);
+delay(500);
 }
 
 void loop() {
